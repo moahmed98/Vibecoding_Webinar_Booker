@@ -161,6 +161,7 @@ app.post('/api/trigger-process-street', async (req, res) => {
     const { title, start, end, type, bootcampName, linkedin } = req.body;
 
     try {
+        console.log('Process Street request body:', JSON.stringify(req.body, null, 2));
         console.log('Sending to Process Street webhook...');
 
         // Send simple JSON to webhook

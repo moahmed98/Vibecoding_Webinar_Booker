@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Combine separate date + time inputs into ISO string
     function combineDateTime(dateVal, timeVal) {
         if (!dateVal || !timeVal) return null;
-        return `${dateVal}T${timeVal}`;
+        // Append IST offset so Notion/APIs store the correct local date
+        return `${dateVal}T${timeVal}:00+05:30`;
     }
 
     // Auto-sync end date when start date is picked
@@ -261,6 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorDiv.classList.add('hidden');
 
         try {
+            console.log('Sending to Process Street:', bookedEventData);
             const response = await fetch('/api/trigger-process-street', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

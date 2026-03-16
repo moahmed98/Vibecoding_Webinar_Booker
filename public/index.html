@@ -4,485 +4,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book a Webinar — Codebasics</title>
-    <meta name="description" content="Schedule and book webinars for Codebasics. Check availability and manage events.">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400;600;700;800;900&family=Kanit:wght@300;400;500;600&display=swap"
-        rel="stylesheet">
-    <style>
-        :root {
-            --brand-blue: #3B82F6;
-            --brand-purple: #6F53C1;
-            --slate-blue: #3F4C78;
-            --deep-navy: #181830;
-            --lime: #D7EF3F;
-            --teal: #20C997;
-            --orange: #FD7E15;
-            --lavender: #E1E3FA;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Kanit', sans-serif;
-            background: #181830;
-            color: #FFFFFF;
-            margin: 0;
-            min-height: 100vh;
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            font-family: 'Saira Condensed', sans-serif;
-        }
-
-        /* Card glass effect */
-        .card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            backdrop-filter: blur(12px);
-        }
-
-        /* Input styling */
-        .cb-input {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 8px;
-            color: #FFFFFF;
-            padding: 10px 14px;
-            font-family: 'Kanit', sans-serif;
-            font-weight: 300;
-            font-size: 14px;
-            width: 100%;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .cb-input:focus {
-            outline: none;
-            border-color: var(--brand-blue);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-        }
-
-        .cb-input::placeholder {
-            color: rgba(255, 255, 255, 0.35);
-        }
-
-        /* Select styling */
-        .cb-select {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 8px;
-            color: #FFFFFF;
-            padding: 10px 14px;
-            font-family: 'Kanit', sans-serif;
-            font-weight: 300;
-            font-size: 14px;
-            width: 100%;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            cursor: pointer;
-        }
-
-        .cb-select:focus {
-            outline: none;
-            border-color: var(--brand-blue);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-        }
-
-        .cb-select option {
-            background: #181830;
-            color: #FFFFFF;
-        }
-
-        /* Label styling */
-        .cb-label {
-            font-family: 'Kanit', sans-serif;
-            font-weight: 400;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 6px;
-            display: block;
-            letter-spacing: 0.3px;
-        }
-
-        /* Primary button */
-        .btn-primary {
-            background: var(--brand-blue);
-            color: #FFFFFF;
-            font-family: 'Saira Condensed', sans-serif;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-        }
-
-        .btn-primary:hover {
-            background: #2563EB;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Success button */
-        .btn-success {
-            background: var(--teal);
-            color: #181830;
-            font-family: 'Saira Condensed', sans-serif;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-        }
-
-        .btn-success:hover {
-            background: #1bab80;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(32, 201, 151, 0.3);
-        }
-
-        .btn-success:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Purple button */
-        .btn-purple {
-            background: var(--brand-purple);
-            color: #FFFFFF;
-            font-family: 'Saira Condensed', sans-serif;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-            border: none;
-            border-radius: 8px;
-            padding: 14px 24px;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-        }
-
-        .btn-purple:hover {
-            background: #5a3fb0;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(111, 83, 193, 0.35);
-        }
-
-        /* Summary row */
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            font-size: 14px;
-        }
-
-        .summary-label {
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: 300;
-        }
-
-        .summary-value {
-            color: #FFFFFF;
-            font-weight: 400;
-        }
-
-        /* Date/time grid */
-        .datetime-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        /* Subtle glow on the main card */
-        .card-glow {
-            box-shadow: 0 0 60px rgba(59, 130, 246, 0.08), 0 8px 32px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Hide elements */
-        .hidden {
-            display: none !important;
-        }
-
-        /* Smooth transitions for form sections */
-        .form-section {
-            transition: all 0.3s ease;
-        }
-
-        /* Color scheme for date/time inputs */
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-        }
-    </style>
+    <title>Login — Codebasics Webinar Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
-    <!-- Request Date Change (Top Right) -->
-    <button id="request-date-change-btn"
-        style="position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: rgba(255,255,255,0.7); font-family: 'Kanit', sans-serif; font-weight: 400; font-size: 13px; padding: 10px 18px; cursor: pointer; transition: all 0.2s; z-index: 100;">
-        📅 Request Change in Dates
-    </button>
-    <div id="date-change-message" class="hidden"
-        style="position: fixed; top: 20px; right: 20px; color: #FD7E15; font-size: 13px; font-weight: 400; padding: 12px 18px; background: rgba(253, 126, 21, 0.1); border-radius: 8px; border: 1px solid rgba(253, 126, 21, 0.2); font-family: 'Kanit', sans-serif; z-index: 100; backdrop-filter: blur(8px);">
-        📞 Reach out to Operations Team for Date Change
-    </div>
-
-    <div
-        style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 16px;">
-
-        <!-- Logo -->
+    <div class="auth-center">
         <div style="margin-bottom: 32px;">
-            <img src="https://files.codebasics.io/v3/images/sticky-logo.svg" alt="Codebasics Logo"
-                style="height: 72px; width: auto;">
+            <img src="https://files.codebasics.io/v3/images/sticky-logo.svg" alt="Codebasics" style="height: 72px;">
         </div>
 
-        <!-- Main Card Container -->
-        <div id="main-container" style="max-width: 560px; width: 100%;">
-
-            <!-- Booking Form Card -->
-            <div id="booking-card" class="card card-glow" style="padding: 48px 44px;">
-                <div style="text-align: center; margin-bottom: 28px;">
-                    <h2
-                        style="font-size: 32px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1px; margin: 0;">
-                        Book a <span style="color: #D7EF3F;">Webinar</span>
-                    </h2>
-                    <p style="margin-top: 8px; font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 300;">
-                        Check availability and schedule your event.
-                    </p>
-                </div>
-
-                <form id="bookingForm" style="display: flex; flex-direction: column; gap: 20px;">
-                    <!-- Webinar Title -->
-                    <div>
-                        <label for="title" class="cb-label">Webinar Title</label>
-                        <input id="title" name="title" type="text" required class="cb-input"
-                            placeholder="Enter webinar title...">
-                    </div>
-
-                    <!-- 2x2 Date & Time Grid -->
-                    <div class="datetime-grid">
-                        <div>
-                            <label for="start-date" class="cb-label">Start Date</label>
-                            <input id="start-date" name="start-date" type="date" required class="cb-input">
-                        </div>
-                        <div>
-                            <label for="end-date" class="cb-label">End Date</label>
-                            <input id="end-date" name="end-date" type="date" required class="cb-input">
-                        </div>
-                        <div>
-                            <label for="start-time" class="cb-label">Start Time</label>
-                            <input id="start-time" name="start-time" type="time" required class="cb-input">
-                        </div>
-                        <div>
-                            <label for="end-time" class="cb-label">End Time</label>
-                            <input id="end-time" name="end-time" type="time" required class="cb-input">
-                        </div>
-                    </div>
-
-                    <!-- Availability Feedback -->
-                    <div id="availability-feedback" class="hidden"
-                        style="font-size: 14px; font-weight: 500; padding: 8px 12px; border-radius: 6px;"></div>
-
-                    <button type="button" id="check-availability-btn" class="btn-primary">
-                        Check Availability
-                    </button>
-
-                    <!-- Extended Form (Hidden until availability confirmed) -->
-                    <div id="extended-form" class="hidden form-section"
-                        style="display: flex; flex-direction: column; gap: 20px;">
-
-                        <!-- Webinar Type -->
-                        <div>
-                            <label for="type" class="cb-label">Type of Webinar</label>
-                            <select id="type" name="type" required class="cb-select">
-                                <option value="">Select a type...</option>
-                                <option value="Bootcamp Webinar">Bootcamp Webinar</option>
-                                <option value="Course Webinar">Course Webinar</option>
-                            </select>
-                        </div>
-
-                        <!-- Bootcamp Name (Only for Bootcamp Webinar) -->
-                        <div id="bootcamp-field" class="hidden">
-                            <label for="bootcampName" class="cb-label">Bootcamp Name <span
-                                    style="color: #FD7E15;">*</span></label>
-                            <select id="bootcampName" name="bootcampName" class="cb-select">
-                                <option value="">Select Bootcamp...</option>
-                                <option value="DA Bootcamp">DA Bootcamp</option>
-                                <option value="DE Bootcamp">DE Bootcamp</option>
-                                <option value="DS Bootcamp">DS Bootcamp</option>
-                            </select>
-                        </div>
-
-                        <!-- Specific Event Type (Only for Course Webinar) -->
-                        <div id="specific-event-field" class="hidden">
-                            <label for="specificEventType" class="cb-label">Specific Event Type</label>
-                            <select id="specificEventType" name="specificEventType" class="cb-select">
-                                <option value="">Select...</option>
-                                <option value="Expert Webinar">Expert Webinar</option>
-                                <option value="Live Problem Solving Sessions">Live Problem Solving Sessions</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-
-                        <!-- Custom Event Name (Only when "Other" is selected) -->
-                        <div id="custom-event-field" class="hidden">
-                            <label for="customEventName" class="cb-label">Custom Event Name <span
-                                    style="color: #FD7E15;">*</span></label>
-                            <input id="customEventName" name="customEventName" type="text"
-                                placeholder="Enter event name..." class="cb-input">
-                        </div>
-
-                        <!-- LinkedIn Profile -->
-                        <div>
-                            <label for="linkedin" class="cb-label">Guest's LinkedIn Profile</label>
-                            <input id="linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/..."
-                                required class="cb-input">
-                        </div>
-
-                        <button type="submit" id="submit-btn" class="btn-success">
-                            Confirm Booking
-                        </button>
-                    </div>
-                </form>
-                <div id="final-message" style="text-align: center; font-weight: 500; margin-top: 16px;"></div>
+        <div class="card card-glow" style="max-width: 440px; width: 100%; padding: 44px;">
+            <!-- Tabs -->
+            <div class="tabs" style="margin-bottom: 28px;">
+                <button class="tab active" id="tab-login" onclick="showTab('login')">Login</button>
+                <button class="tab" id="tab-register" onclick="showTab('register')">Register</button>
             </div>
 
-            <!-- Success Card (Hidden initially) -->
-            <div id="success-card" class="card card-glow hidden" style="padding: 48px 44px;">
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
-                    <h2
-                        style="font-size: 28px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; margin: 0;">
-                        Event <span style="color: #20C997;">Booked!</span>
-                    </h2>
-                    <p style="margin-top: 8px; font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 300;">
-                        Added to Centralized Notion Calendar.
-                    </p>
+            <!-- Login Form -->
+            <form id="login-form" style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label class="cb-label">Email</label>
+                    <input type="email" id="login-email" class="cb-input" placeholder="you@company.com" required>
                 </div>
+                <div>
+                    <label class="cb-label">Password</label>
+                    <input type="password" id="login-password" class="cb-input" placeholder="••••••••" required>
+                </div>
+                <div id="login-error" class="hidden"
+                    style="color: var(--cb-danger); font-size: 13px; padding: 8px; background: #FEE2E2; border-radius: 6px;">
+                </div>
+                <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
+                <div style="text-align: right; margin-top: 4px;">
+                    <a href="#" id="forgot-link" style="font-size: 13px; color: var(--cb-blue); font-weight: 500;">Forgot password?</a>
+                </div>
+            </form>
 
-                <!-- Event Summary -->
-                <div
-                    style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-                    <h3
-                        style="font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                        Event Summary
-                    </h3>
-                    <div class="summary-row">
-                        <span class="summary-label">Title</span>
-                        <span class="summary-value" id="summary-title"></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Start</span>
-                        <span class="summary-value" id="summary-start"></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">End</span>
-                        <span class="summary-value" id="summary-end"></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Type</span>
-                        <span class="summary-value" id="summary-type"></span>
-                    </div>
-                    <div class="summary-row hidden" id="summary-bootcamp-row">
-                        <span class="summary-label">Bootcamp</span>
-                        <span class="summary-value" id="summary-bootcamp"></span>
-                    </div>
-                    <div class="summary-row" style="border-bottom: none;">
-                        <span class="summary-label">LinkedIn</span>
-                        <span class="summary-value" id="summary-linkedin"></span>
-                    </div>
-                    <a id="notion-link" href="#" target="_blank"
-                        style="display: inline-block; margin-top: 12px; color: #3B82F6; font-size: 13px; font-weight: 400; text-decoration: none; transition: color 0.2s;">
-                        View in Notion →
-                    </a>
+            <!-- Forgot Password Form -->
+            <form id="forgot-form" class="hidden" style="display: flex; flex-direction: column; gap: 16px;">
+                <p style="font-size: 14px; color: var(--cb-text-secondary); margin-bottom: 4px;">
+                    Enter your email and we'll send you a link to reset your password.
+                </p>
+                <div>
+                    <label class="cb-label">Email</label>
+                    <input type="email" id="forgot-email" class="cb-input" placeholder="you@company.com" required>
                 </div>
+                <div id="forgot-error" class="hidden"
+                    style="color: var(--cb-danger); font-size: 13px; padding: 8px; background: #FEE2E2; border-radius: 6px;">
+                </div>
+                <div id="forgot-success" class="hidden"
+                    style="color: #059669; font-size: 13px; padding: 8px; background: #D1FAE5; border-radius: 6px;">
+                </div>
+                <button type="submit" class="btn-primary" id="forgot-btn">Send Reset Link</button>
+                <div style="text-align: center; margin-top: 4px;">
+                    <a href="#" id="back-to-login" style="font-size: 13px; color: var(--cb-blue); font-weight: 500;">← Back to login</a>
+                </div>
+            </form>
 
-                <!-- Process Street Section -->
-                <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px;">
-                    <div id="process-street-prompt" style="text-align: center;">
-                        <p
-                            style="color: rgba(255,255,255,0.7); font-weight: 400; font-size: 14px; margin-bottom: 16px;">
-                            Send to Process Street to start the operations pipeline?
-                        </p>
-                        <button id="process-street-btn" class="btn-purple">
-                            Yes — Start Operations Workflow
-                        </button>
-                    </div>
-                    <div id="process-street-success" class="hidden" style="text-align: center;">
-                        <div style="font-size: 40px; margin-bottom: 8px;">🚀</div>
-                        <p
-                            style="color: #20C997; font-weight: 700; font-size: 16px; font-family: 'Saira Condensed', sans-serif; text-transform: uppercase;">
-                            Operations Team Notified!
-                        </p>
-                        <p style="color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 300;">
-                            Workflow started in Process Street.
-                        </p>
-                    </div>
-                    <div id="process-street-loading" class="hidden" style="text-align: center;">
-                        <p style="color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 300;">
-                            Sending to Process Street...
-                        </p>
-                    </div>
-                    <div id="process-street-error" class="hidden" style="text-align: center;">
-                        <p style="color: #FD7E15; font-weight: 500; font-size: 14px;">Failed to start workflow.</p>
-                        <button id="retry-ps-btn"
-                            style="margin-top: 8px; color: #3B82F6; font-size: 13px; background: none; border: none; cursor: pointer; text-decoration: underline; font-family: 'Kanit', sans-serif;">
-                            Try Again
-                        </button>
-                    </div>
+            <!-- Register Form -->
+            <form id="register-form" class="hidden" style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label class="cb-label">Full Name</label>
+                    <input type="text" id="reg-name" class="cb-input" placeholder="Your full name" required>
                 </div>
-            </div>
+                <div>
+                    <label class="cb-label">Email</label>
+                    <input type="email" id="reg-email" class="cb-input" placeholder="you@company.com" required>
+                </div>
+                <div>
+                    <label class="cb-label">Password</label>
+                    <input type="password" id="reg-password" class="cb-input" placeholder="Min 6 characters" required
+                        minlength="6">
+                </div>
+                <div>
+                    <label class="cb-label">Team</label>
+                    <select id="reg-team" class="cb-select" required>
+                        <option value="">Select your team...</option>
+                        <option value="content">Content</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="engineering">Engineering</option>
+                        <option value="operations">Operations</option>
+                    </select>
+                </div>
+                <div id="reg-error" class="hidden"
+                    style="color: var(--cb-danger); font-size: 13px; padding: 8px; background: #FEE2E2; border-radius: 6px;">
+                </div>
+                <button type="submit" class="btn-success" id="reg-btn">Create Account</button>
+            </form>
         </div>
 
-        <!-- Footer -->
-        <p style="margin-top: 32px; font-size: 12px; color: rgba(255,255,255,0.25); font-weight: 300;">
+        <p style="margin-top: 32px; font-size: 12px; color: var(--cb-text-muted); font-weight: 400;">
             Codebasics · Enabling Careers
         </p>
     </div>
 
-    <script src="script.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        redirectIfLoggedIn();
+
+        function showTab(tab) {
+            document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
+            document.getElementById('forgot-form').classList.toggle('hidden', tab !== 'forgot');
+            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+        }
+
+        // Forgot password link
+        document.getElementById('forgot-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            showTab('forgot');
+        });
+
+        document.getElementById('back-to-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            showTab('login');
+        });
+
+        // Forgot password submit
+        document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorDiv = document.getElementById('forgot-error');
+            const successDiv = document.getElementById('forgot-success');
+            const btn = document.getElementById('forgot-btn');
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'SENDING...';
+
+            const { error } = await sendPasswordReset(
+                document.getElementById('forgot-email').value
+            );
+
+            if (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            } else {
+                successDiv.textContent = '✅ Reset link sent! Check your email inbox.';
+                successDiv.classList.remove('hidden');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Send Reset Link';
+        });
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorDiv = document.getElementById('login-error');
+            const btn = document.getElementById('login-btn');
+            errorDiv.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'SIGNING IN...';
+
+            const { data, error } = await signIn(
+                document.getElementById('login-email').value,
+                document.getElementById('login-password').value
+            );
+
+            if (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'SIGN IN';
+            } else {
+                const profile = await getProfile();
+                if (profile && profile.team === 'operations') {
+                    window.location.href = '/ops.html';
+                } else {
+                    window.location.href = '/booking.html';
+                }
+            }
+        });
+
+        // Register
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorDiv = document.getElementById('reg-error');
+            const btn = document.getElementById('reg-btn');
+            errorDiv.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'CREATING...';
+
+            const { data, error } = await signUp(
+                document.getElementById('reg-email').value,
+                document.getElementById('reg-password').value,
+                document.getElementById('reg-name').value,
+                document.getElementById('reg-team').value
+            );
+
+            if (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'CREATE ACCOUNT';
+            } else {
+                // Auto-login after signup
+                const { error: loginErr } = await signIn(
+                    document.getElementById('reg-email').value,
+                    document.getElementById('reg-password').value
+                );
+                if (!loginErr) {
+                    const profile = await getProfile();
+                    if (profile && profile.team === 'operations') {
+                        window.location.href = '/ops.html';
+                    } else {
+                        window.location.href = '/booking.html';
+                    }
+                } else {
+                    showToast('Account created! Please sign in.', 'success');
+                    showTab('login');
+                    btn.disabled = false;
+                    btn.textContent = 'CREATE ACCOUNT';
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

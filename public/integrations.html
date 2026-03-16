@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrations — Codebasics</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .integ-container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+        .integ-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+        .integ-title { font-family: 'Manrope', sans-serif; font-size: 24px; font-weight: 800; color: var(--cb-text); }
+        .integ-subtitle { font-size: 14px; color: var(--cb-text-muted); margin-top: 4px; }
+
+        /* Sections */
+        .integ-section { margin-bottom: 36px; }
+        .integ-section-title {
+            font-size: 14px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--cb-text-muted); margin-bottom: 12px;
+        }
+
+        /* Add Webhook Form */
+        .webhook-form {
+            background: var(--cb-bg); border: 1px solid var(--cb-border);
+            border-radius: 12px; padding: 20px; margin-bottom: 20px;
+        }
+        .webhook-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .webhook-form-row.full { grid-template-columns: 1fr; }
+        .webhook-events-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+        .event-chip {
+            display: flex; align-items: center; gap: 4px;
+            padding: 4px 10px; border: 1px solid var(--cb-border);
+            border-radius: 6px; font-size: 12px; color: var(--cb-text-secondary);
+            cursor: pointer; transition: all 150ms ease-out;
+        }
+        .event-chip:hover { border-color: var(--cb-blue); }
+        .event-chip.selected { background: var(--cb-blue); color: #fff; border-color: var(--cb-blue); }
+        .event-chip input { display: none; }
+
+        /* Webhook list */
+        .webhook-card {
+            border: 1px solid var(--cb-border); border-radius: 10px;
+            padding: 14px 18px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: border-color 150ms ease-out;
+        }
+        .webhook-card:hover { border-color: var(--cb-border-hover); }
+        .webhook-card-left { flex: 1; }
+        .webhook-card-label { font-size: 14px; font-weight: 600; color: var(--cb-text); }
+        .webhook-card-url { font-size: 12px; color: var(--cb-text-muted); margin-top: 2px; word-break: break-all; }
+        .webhook-card-events { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+        .webhook-card-events span {
+            font-size: 10px; padding: 2px 6px; border-radius: 4px;
+            background: #DBEAFE; color: var(--cb-blue); font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .webhook-card-right { display: flex; align-items: center; gap: 8px; }
+
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative; width: 40px; height: 22px;
+            background: #D1D5DB; border-radius: 11px; cursor: pointer;
+            transition: background 150ms ease-out;
+        }
+        .toggle-switch.active { background: var(--cb-blue); }
+        .toggle-switch::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: #fff; transition: transform 150ms ease-out;
+        }
+        .toggle-switch.active::after { transform: translateX(18px); }
+
+        /* Event log */
+        .log-table { width: 100%; border-collapse: collapse; }
+        .log-table th {
+            text-align: left; padding: 8px 12px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--cb-text-muted);
+            border-bottom: 2px solid var(--cb-border);
+        }
+        .log-table td {
+            padding: 10px 12px; border-bottom: 1px solid #F3F4F6;
+            font-size: 13px; color: var(--cb-text-secondary);
+        }
+        .log-dir {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+        }
+        .log-inbound { background: #D1FAE5; color: #059669; }
+        .log-outbound { background: #DBEAFE; color: var(--cb-blue); }
+        .log-status-sent { color: #059669; }
+        .log-status-error { color: #DC2626; }
+        .log-status-received { color: var(--cb-blue); }
+    </style>
+</head>
+<body>
+    <!-- Top Nav -->
+    <nav class="top-nav">
+        <img src="https://files.codebasics.io/v3/images/sticky-logo.svg" alt="Codebasics" class="top-nav-logo">
+        <div class="top-nav-user">
+            <a href="/ops.html" style="color: var(--cb-blue); font-size: 13px; font-weight: 600; text-decoration: none; margin-right: 16px;">← Dashboard</a>
+            <span id="nav-name" class="top-nav-name"></span>
+            <span id="nav-role" class="top-nav-role"></span>
+            <button class="logout-btn" id="logout-btn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="integ-container">
+        <div class="integ-header">
+            <div>
+                <div class="integ-title">⚙️ Integrations</div>
+                <div class="integ-subtitle">Manage webhook URLs for Power Automate, Slack, Teams, or Zapier.</div>
+            </div>
+        </div>
+
+        <!-- Add Webhook -->
+        <div class="integ-section">
+            <div class="integ-section-title">Add Webhook URL</div>
+            <div class="webhook-form" id="add-form">
+                <div class="webhook-form-row">
+                    <div>
+                        <label class="cb-label">Label</label>
+                        <input type="text" id="wh-label" class="cb-input" placeholder="e.g. Power Automate → Teams">
+                    </div>
+                    <div>
+                        <label class="cb-label">Secret (optional)</label>
+                        <input type="text" id="wh-secret" class="cb-input" placeholder="x-webhook-secret value">
+                    </div>
+                </div>
+                <div class="webhook-form-row full">
+                    <div>
+                        <label class="cb-label">Webhook URL</label>
+                        <input type="url" id="wh-url" class="cb-input" placeholder="https://..." required>
+                    </div>
+                </div>
+                <div>
+                    <label class="cb-label">Subscribe to Events</label>
+                    <div class="webhook-events-grid" id="event-checkboxes">
+                        <label class="event-chip" data-event="task_created">
+                            <input type="checkbox" value="task_created"> task_created
+                        </label>
+                        <label class="event-chip" data-event="task_completed">
+                            <input type="checkbox" value="task_completed"> task_completed
+                        </label>
+                        <label class="event-chip" data-event="task_uncompleted">
+                            <input type="checkbox" value="task_uncompleted"> task_uncompleted
+                        </label>
+                        <label class="event-chip" data-event="task_deleted">
+                            <input type="checkbox" value="task_deleted"> task_deleted
+                        </label>
+                        <label class="event-chip" data-event="task_text_changed">
+                            <input type="checkbox" value="task_text_changed"> task_text_changed
+                        </label>
+                        <label class="event-chip" data-event="assignee_changed">
+                            <input type="checkbox" value="assignee_changed"> assignee_changed
+                        </label>
+                        <label class="event-chip" data-event="due_date_changed">
+                            <input type="checkbox" value="due_date_changed"> due_date_changed
+                        </label>
+                        <label class="event-chip" data-event="component_updated">
+                            <input type="checkbox" value="component_updated"> component_updated
+                        </label>
+                        <label class="event-chip" data-event="task_overdue">
+                            <input type="checkbox" value="task_overdue"> task_overdue
+                        </label>
+                        <label class="event-chip" data-event="checklist_created">
+                            <input type="checkbox" value="checklist_created"> checklist_created
+                        </label>
+                        <label class="event-chip" data-event="checklist_renamed">
+                            <input type="checkbox" value="checklist_renamed"> checklist_renamed
+                        </label>
+                        <label class="event-chip" data-event="checklist_deleted">
+                            <input type="checkbox" value="checklist_deleted"> checklist_deleted
+                        </label>
+                        <label class="event-chip" data-event="workflow_started">
+                            <input type="checkbox" value="workflow_started"> workflow_started
+                        </label>
+                        <label class="event-chip" data-event="workflow_completed">
+                            <input type="checkbox" value="workflow_completed"> workflow_completed
+                        </label>
+                    </div>
+                </div>
+                <div style="margin-top: 14px;">
+                    <button class="btn-primary btn-sm" id="add-webhook-btn" style="width: auto; padding: 10px 24px;">Add Webhook</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Webhook List -->
+        <div class="integ-section">
+            <div class="integ-section-title">Active Webhooks</div>
+            <div id="webhook-list">
+                <p style="color: var(--cb-text-muted); font-size: 13px;">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="integ-section">
+            <div class="integ-section-title">Recent Event Log</div>
+            <div style="border: 1px solid var(--cb-border); border-radius: 10px; overflow: hidden;">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Direction</th>
+                            <th>Event</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-tbody">
+                        <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--cb-text-muted);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        let profile;
+
+        (async () => {
+            profile = await requireRole(['operations']);
+            if (!profile) return;
+            setupNav(profile);
+            loadWebhooks();
+            loadEventLog();
+        })();
+
+        // Event chip toggles
+        document.querySelectorAll('.event-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const cb = chip.querySelector('input');
+                cb.checked = !cb.checked;
+                chip.classList.toggle('selected', cb.checked);
+            });
+        });
+
+        // Add webhook
+        document.getElementById('add-webhook-btn').addEventListener('click', async () => {
+            const url = document.getElementById('wh-url').value.trim();
+            const label = document.getElementById('wh-label').value.trim();
+            const secret = document.getElementById('wh-secret').value.trim();
+            const events = [];
+            document.querySelectorAll('#event-checkboxes input:checked').forEach(cb => events.push(cb.value));
+
+            if (!url) { alert('Webhook URL is required.'); return; }
+
+            const btn = document.getElementById('add-webhook-btn');
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+
+            const result = await apiCall('/api/webhooks', 'POST', { url, label, secret, events });
+
+            if (result.webhook) {
+                document.getElementById('wh-url').value = '';
+                document.getElementById('wh-label').value = '';
+                document.getElementById('wh-secret').value = '';
+                document.querySelectorAll('#event-checkboxes input').forEach(cb => { cb.checked = false; });
+                document.querySelectorAll('.event-chip').forEach(c => c.classList.remove('selected'));
+                loadWebhooks();
+            } else {
+                alert(result.error || 'Failed to add webhook.');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Add Webhook';
+        });
+
+        // Load webhooks
+        async function loadWebhooks() {
+            const container = document.getElementById('webhook-list');
+            const result = await apiCall('/api/webhooks');
+            const webhooks = result.webhooks || [];
+
+            if (webhooks.length === 0) {
+                container.innerHTML = '<p style="color: var(--cb-text-muted); font-size: 13px; padding: 16px 0;">No webhooks configured yet.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            webhooks.forEach(wh => {
+                const card = document.createElement('div');
+                card.className = 'webhook-card';
+                card.innerHTML = `
+                    <div class="webhook-card-left">
+                        <div class="webhook-card-label">${wh.label || 'Webhook'}</div>
+                        <div class="webhook-card-url">${wh.url}</div>
+                        <div class="webhook-card-events">
+                            ${(wh.events || []).map(e => `<span>${e}</span>`).join('')}
+                            ${(!wh.events || wh.events.length === 0) ? '<span style="background:#F3F4F6;color:var(--cb-text-muted);">all events</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="webhook-card-right">
+                        <div class="toggle-switch ${wh.active ? 'active' : ''}" data-id="${wh.id}" data-active="${wh.active}"></div>
+                        <button class="btn-icon danger" data-delete-id="${wh.id}" style="font-size:14px;">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Toggle listeners
+            container.querySelectorAll('.toggle-switch').forEach(toggle => {
+                toggle.addEventListener('click', async () => {
+                    const id = toggle.dataset.id;
+                    const newActive = toggle.dataset.active !== 'true';
+                    await apiCall(`/api/webhooks/${id}`, 'PATCH', { active: newActive });
+                    loadWebhooks();
+                });
+            });
+
+            // Delete listeners
+            container.querySelectorAll('[data-delete-id]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (confirm('Delete this webhook?')) {
+                        await apiCall(`/api/webhooks/${btn.dataset.deleteId}`, 'DELETE');
+                        loadWebhooks();
+                    }
+                });
+            });
+        }
+
+        // Load event log
+        async function loadEventLog() {
+            const tbody = document.getElementById('log-tbody');
+            const result = await apiCall('/api/webhook-events');
+            const events = result.events || [];
+
+            if (events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--cb-text-muted);">No events logged yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            events.forEach(ev => {
+                const tr = document.createElement('tr');
+                const dirClass = ev.direction === 'inbound' ? 'log-inbound' : 'log-outbound';
+                const statusClass = ev.status === 'sent' || ev.status === 'received' ? `log-status-${ev.status}` : 'log-status-error';
+                const time = new Date(ev.created_at).toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                });
+                tr.innerHTML = `
+                    <td><span class="log-dir ${dirClass}">${ev.direction}</span></td>
+                    <td style="font-weight:500;">${ev.event_type}</td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ev.source || '—'}</td>
+                    <td><span class="${statusClass}" style="font-weight:600;">${ev.status}</span></td>
+                    <td style="white-space:nowrap;">${time}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>

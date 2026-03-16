@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operations — Codebasics</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ============================================
+           OPS-SPECIFIC STYLES (Light Theme)
+           ============================================ */
+
+        /* Workflow Runs Table */
+        .wf-table-wrap { padding: 32px 40px; }
+        .wf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .wf-title { font-family: 'Manrope', sans-serif; font-size: 22px; font-weight: 800; color: var(--cb-text); }
+        .wf-title span { color: var(--cb-text-muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+        .wf-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+        .wf-search {
+            background: var(--cb-bg); border: 1px solid var(--cb-border);
+            border-radius: 8px; color: var(--cb-text); padding: 8px 14px; font-family: 'Manrope'; font-size: 13px;
+            width: 220px;
+        }
+        .wf-search::placeholder { color: var(--cb-text-muted); }
+        .wf-search:focus { outline: none; border-color: var(--cb-blue); }
+
+        /* Table */
+        .wf-table { width: 100%; border-collapse: collapse; }
+        .wf-table th {
+            text-align: left; padding: 10px 14px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--cb-text-muted); border-bottom: 2px solid var(--cb-border);
+            white-space: nowrap;
+        }
+        .wf-table td {
+            padding: 14px 14px; border-bottom: 1px solid #F3F4F6;
+            font-size: 14px; color: var(--cb-text-secondary);
+        }
+        .wf-table tr { cursor: pointer; transition: background 150ms ease-out; }
+        .wf-table tbody tr:hover { background: var(--cb-surface); }
+
+        .wf-name { color: var(--cb-text); font-weight: 500; }
+        .wf-name .highlight { color: var(--cb-blue); }
+        .wf-assignee {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--cb-blue); color: #fff; font-size: 11px; font-weight: 700;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+
+        /* Progress mini bar */
+        .wf-progress { display: flex; align-items: center; gap: 10px; }
+        .wf-progress-bar { flex: 1; height: 6px; background: #F3F4F6; border-radius: 3px; overflow: hidden; min-width: 100px; }
+        .wf-progress-fill { height: 100%; background: var(--cb-blue); border-radius: 3px; transition: width 300ms ease-out; }
+        .wf-progress-text { font-size: 13px; color: var(--cb-text-muted); white-space: nowrap; }
+
+        .wf-status {
+            display: inline-block; padding: 3px 10px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .wf-on-track { background: #DBEAFE; color: var(--cb-blue); }
+        .wf-pending { background: #FEF3C7; color: #D97706; }
+        .wf-delayed { background: #FEE2E2; color: #DC2626; }
+        .wf-done { background: #D1FAE5; color: #059669; }
+
+        /* ============================================
+           2-PANE CHECKLIST ENGINE
+           ============================================ */
+        .engine-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            height: calc(100vh - 69px);
+        }
+
+        /* Left Pane */
+        .engine-left {
+            border-right: 1px solid var(--cb-border);
+            display: flex; flex-direction: column;
+            background: var(--cb-bg);
+        }
+
+        .engine-left-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--cb-border);
+        }
+
+        .engine-event-name {
+            font-family: 'Manrope', sans-serif;
+            font-size: 16px; font-weight: 700; color: var(--cb-text);
+        }
+
+        .engine-event-meta { font-size: 11px; color: var(--cb-text-muted); margin-top: 2px; }
+
+        /* Progress in header */
+        .engine-progress { margin-top: 10px; }
+        .engine-progress-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--cb-text-muted); margin-bottom: 3px; }
+        .engine-progress-pct { color: var(--cb-blue); font-weight: 700; font-family: 'Manrope'; font-size: 14px; }
+
+        /* Task list */
+        .engine-tasks { flex: 1; overflow-y: auto; }
+
+        .engine-task {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 20px;
+            border-bottom: 1px solid #F3F4F6;
+            cursor: pointer; transition: background 150ms ease-out;
+            position: relative;
+        }
+        .engine-task:hover { background: var(--cb-surface); }
+        .engine-task.active {
+            background: var(--cb-blue-light);
+            border-left: 3px solid var(--cb-blue);
+            padding-left: 17px;
+        }
+
+        /* Drag-and-drop */
+        .engine-task[draggable="true"] { cursor: grab; }
+        .engine-task.dragging { opacity: 0.4; background: var(--cb-surface); }
+        .engine-task.drag-over {
+            border-top: 2px solid var(--cb-blue);
+            margin-top: -1px;
+        }
+
+        .task-num {
+            font-size: 12px; color: var(--cb-text-muted); min-width: 20px; text-align: right;
+        }
+
+        .task-cb {
+            width: 18px; height: 18px; border: 2px solid var(--cb-border);
+            border-radius: 3px; flex-shrink: 0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color 150ms ease-out;
+        }
+        .task-cb:hover { border-color: var(--cb-blue); }
+        .task-cb.done { background: var(--cb-blue); border-color: var(--cb-blue); }
+        .task-cb.done::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 700; }
+
+        .task-label {
+            flex: 1; font-size: 13px; color: var(--cb-text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .task-label.struck { text-decoration: line-through; color: var(--cb-text-muted); }
+
+        .task-avatar {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--cb-blue); font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; color: #fff;
+            flex-shrink: 0;
+        }
+
+        /* Checklist section header */
+        .cl-section {
+            padding: 8px 20px;
+            background: var(--cb-surface);
+            border-bottom: 1px solid var(--cb-border);
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative;
+        }
+        .cl-section-label {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--cb-text-secondary);
+            cursor: default; flex: 1;
+        }
+        .cl-section-name {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--cb-text-secondary);
+            background: none; border: 1px solid var(--cb-blue); outline: none; font-family: 'Manrope';
+            cursor: text; border-radius: 4px; padding: 2px 6px;
+        }
+        .cl-section-name:focus { color: var(--cb-text); }
+
+        /* 3-dot dropdown for checklist */
+        .cl-dots { position: relative; }
+        .cl-dots-btn {
+            background: none; border: none; cursor: pointer;
+            font-size: 16px; color: var(--cb-text-muted); padding: 2px 6px;
+            border-radius: 4px; transition: background 150ms ease-out;
+        }
+        .cl-dots-btn:hover { background: var(--cb-border); color: var(--cb-text); }
+        .cl-dropdown {
+            position: absolute; top: 100%; right: 0;
+            background: var(--cb-bg); border: 1px solid var(--cb-border);
+            border-radius: 8px; min-width: 160px; z-index: 70;
+            overflow: hidden;
+        }
+        .cl-dropdown-item {
+            padding: 10px 16px; cursor: pointer; font-size: 13px;
+            color: var(--cb-text-secondary); transition: background 150ms ease-out;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .cl-dropdown-item:hover { background: var(--cb-surface); }
+        .cl-dropdown-item.danger { color: var(--cb-danger); }
+        .cl-dropdown-item.danger:hover { background: #FEE2E2; }
+
+        /* Bottom bar */
+        .engine-left-bottom {
+            border-top: 1px solid var(--cb-border);
+            padding: 12px 20px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+
+        /* Right Pane */
+        .engine-right {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            background: var(--cb-bg);
+        }
+
+        .engine-right-empty {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            color: var(--cb-text-muted); font-size: 15px;
+        }
+
+        .engine-right-content {
+            flex: 1; padding: 28px 32px; overflow-y: auto;
+        }
+
+        .detail-task-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: 22px; font-weight: 800;
+            border: none; background: none; color: var(--cb-text); width: 100%;
+            outline: none; padding: 0; margin-bottom: 8px;
+        }
+
+        .detail-meta-row {
+            display: flex; gap: 16px; align-items: center;
+            padding-bottom: 20px; margin-bottom: 20px;
+            border-bottom: 1px solid var(--cb-border);
+            font-size: 13px; color: var(--cb-text-muted);
+        }
+
+        .detail-meta-item {
+            display: flex; align-items: center; gap: 6px;
+            cursor: pointer; padding: 4px 10px;
+            border-radius: 6px; transition: background 150ms ease-out;
+        }
+        .detail-meta-item:hover { background: var(--cb-surface); }
+
+        /* Components in detail */
+        .comp-block {
+            background: var(--cb-bg);
+            border: 1px solid var(--cb-border);
+            border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+            position: relative;
+        }
+        .comp-block:hover { border-color: var(--cb-border-hover); }
+        .comp-block:hover .comp-del { opacity: 1; }
+
+        .comp-type-label {
+            display: none; /* user requested: remove all component type headings */
+        }
+
+        .comp-del {
+            position: absolute; top: 10px; right: 10px;
+            opacity: 0; transition: opacity 150ms ease-out;
+            background: none; border: none; color: var(--cb-text-muted);
+            cursor: pointer; font-size: 13px;
+        }
+        .comp-del:hover { color: var(--cb-danger); }
+
+        /* Link field */
+        .link-field {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--cb-surface); border: 1px solid var(--cb-border);
+            border-radius: 8px; padding: 8px 12px;
+        }
+        .link-field-icon { color: var(--cb-blue); font-size: 16px; }
+        .link-field input {
+            flex: 1; background: none; border: none; color: var(--cb-text);
+            font-family: 'Manrope'; font-size: 13px; outline: none;
+        }
+        .link-field-arrow {
+            color: var(--cb-text-muted); font-size: 14px; cursor: pointer;
+            transition: color 150ms ease-out;
+        }
+        .link-field-arrow:hover { color: var(--cb-blue); }
+
+        .pre-filled-note {
+            font-size: 11px; color: var(--cb-text-muted); margin-top: 4px; font-style: italic;
+        }
+
+        /* Subtasks in detail */
+        .subtask-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .subtask-num { font-size: 12px; color: var(--cb-text-muted); min-width: 16px; text-align: right; }
+        .subtask-cb {
+            width: 18px; height: 18px; border-radius: 3px;
+            border: 2px solid var(--cb-border); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color 150ms ease-out; flex-shrink: 0;
+        }
+        .subtask-cb.done { background: var(--cb-blue); border-color: var(--cb-blue); }
+        .subtask-cb.done::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; }
+        .subtask-text {
+            flex: 1; font-size: 13px; color: var(--cb-text);
+            background: none; border: none; outline: none; font-family: 'Manrope'; padding: 2px 0;
+        }
+        .subtask-text.struck { text-decoration: line-through; color: var(--cb-danger); }
+        .subtask-req { color: var(--cb-danger); font-size: 12px; margin-left: 2px; }
+
+        /* Add component panel (slide-in) */
+        .add-panel {
+            position: fixed; top: 69px; right: -280px;
+            width: 260px; height: calc(100vh - 69px);
+            background: var(--cb-bg); border-left: 1px solid var(--cb-border);
+            z-index: 60; transition: right 200ms ease-out;
+            overflow-y: auto; padding: 0;
+        }
+        .add-panel.open { right: 0; }
+
+        .panel-header {
+            padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--cb-border);
+        }
+        .panel-title {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--cb-blue);
+        }
+        .panel-close {
+            background: none; border: none; color: var(--cb-text-muted);
+            font-size: 16px; cursor: pointer;
+        }
+        .panel-close:hover { color: var(--cb-text); }
+
+        .panel-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 20px; cursor: pointer; transition: background 150ms ease-out;
+            font-size: 14px; color: var(--cb-text-secondary);
+        }
+        .panel-item:hover { background: var(--cb-surface); }
+        .panel-item-icon {
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: var(--cb-text-muted);
+        }
+
+        /* Template modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+            z-index: 100; display: flex; align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: var(--cb-bg); border: 1px solid var(--cb-border);
+            border-radius: 16px; max-width: 500px; width: 90%; padding: 28px;
+        }
+
+        /* Assign / Due date popovers */
+        .meta-popover {
+            position: absolute; top: 100%; left: 0;
+            background: var(--cb-bg); border: 1px solid var(--cb-border);
+            border-radius: 8px; padding: 12px; min-width: 220px;
+            z-index: 70;
+        }
+        .meta-popover input {
+            width: 100%; padding: 8px 10px; font-family: 'Manrope'; font-size: 13px;
+            border: 1px solid var(--cb-border); border-radius: 6px; outline: none;
+        }
+        .meta-popover input:focus { border-color: var(--cb-blue); }
+        .meta-popover-label {
+            font-size: 11px; font-weight: 700; color: var(--cb-text-muted);
+            text-transform: uppercase; margin-bottom: 6px;
+        }
+
+        .detail-meta-item { position: relative; }
+    </style>
+</head>
+<body>
+    <!-- Top Nav -->
+    <nav class="top-nav">
+        <img src="https://files.codebasics.io/v3/images/sticky-logo.svg" alt="Codebasics" class="top-nav-logo">
+        <div class="top-nav-user">
+            <span id="nav-name" class="top-nav-name"></span>
+            <span id="nav-role" class="top-nav-role"></span>
+            <button class="logout-btn" id="logout-btn">Logout</button>
+        </div>
+    </nav>
+
+    <!-- ============================================
+         DASHBOARD: Workflow Runs Table
+         ============================================ -->
+    <div id="dashboard-view" class="wf-table-wrap">
+        <div class="wf-header">
+            <div class="wf-title">Workflow Runs <span id="wf-count">0 results</span></div>
+            <div class="flex gap-2">
+                <button class="btn-outline btn-sm" id="manage-templates-btn">📋 Templates</button>
+                <a href="/integrations.html" class="btn-outline btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;">⚙️ Integrations</a>
+            </div>
+        </div>
+        <div class="wf-toolbar">
+            <input type="text" class="wf-search" id="wf-search" placeholder="🔍 Search">
+        </div>
+
+        <table class="wf-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Assignees</th>
+                    <th>Activity</th>
+                    <th>Tasks Completed</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="wf-tbody">
+                <tr><td colspan="6" style="text-align: center; padding: 60px; color: var(--cb-text-muted);">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================
+         2-PANE CHECKLIST ENGINE
+         ============================================ -->
+    <div id="checklist-view" class="hidden">
+        <div class="engine-layout">
+            <!-- LEFT PANE -->
+            <div class="engine-left">
+                <div class="engine-left-header">
+                    <div class="flex justify-between items-center" style="margin-bottom: 6px;">
+                        <button class="btn-icon" id="back-btn" style="font-size: 13px;">← Back</button>
+                        <button class="btn-icon" id="menu-dots" style="font-size: 16px;">⋯</button>
+                    </div>
+                    <div class="engine-event-name" id="engine-title"></div>
+                    <div class="engine-event-meta" id="engine-meta"></div>
+
+                    <div class="engine-progress">
+                        <div class="engine-progress-row">
+                            <span>PROGRESS</span>
+                            <span class="engine-progress-pct" id="eng-pct">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="eng-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="engine-tasks" id="engine-tasks"></div>
+
+                <div class="engine-left-bottom">
+                    <button class="add-btn-dashed" id="add-task-btn" style="padding: 8px; font-size: 13px;">+ Add Task</button>
+                    <div class="flex gap-2">
+                        <button class="btn-outline btn-sm" style="flex:1" id="save-tpl-btn">💾 Save as Template</button>
+                        <button class="btn-outline btn-sm" style="flex:1" id="load-tpl-btn">📋 Load Template</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANE -->
+            <div class="engine-right">
+                <div class="engine-right-empty" id="right-empty">← Select a task to view details</div>
+                <div class="engine-right-content hidden" id="right-content">
+                    <input type="text" class="detail-task-title" id="detail-title" placeholder="Task name...">
+
+                    <div class="detail-meta-row">
+                        <div class="detail-meta-item" id="assign-trigger">👤 <span id="assign-label">Assign</span></div>
+                        <div class="detail-meta-item" id="detail-assignee-avatar"></div>
+                        <div class="detail-meta-item" id="duedate-trigger">📅 <span id="duedate-label">Due date</span></div>
+                    </div>
+
+                    <!-- Components -->
+                    <div id="detail-components"></div>
+
+                    <!-- Add buttons -->
+                    <div style="margin-top: 16px; display: flex; gap: 8px;">
+                        <button class="btn-outline btn-sm" id="open-content-panel">+ Content</button>
+                        <button class="btn-outline btn-sm" id="open-form-panel">+ Form Fields</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT panel (slide-in) -->
+    <div class="add-panel" id="content-panel">
+        <div class="panel-header">
+            <span class="panel-title">Content</span>
+            <button class="panel-close" onclick="closePanel('content-panel')">✕</button>
+        </div>
+        <div class="panel-item" data-comp="text"><div class="panel-item-icon">📝</div> Text</div>
+        <div class="panel-item" data-comp="image"><div class="panel-item-icon">🖼️</div> Image</div>
+        <div class="panel-item" data-comp="file"><div class="panel-item-icon">📎</div> File</div>
+        <div class="panel-item" data-comp="video"><div class="panel-item-icon">🎬</div> Video</div>
+        <div class="panel-item" data-comp="page"><div class="panel-item-icon">📄</div> Page</div>
+        <div class="panel-item" data-comp="email"><div class="panel-item-icon">✉️</div> Send Email</div>
+        <div class="panel-item" data-comp="subtask"><div class="panel-item-icon">✅</div> Subtasks</div>
+        <div class="panel-item" data-comp="embed"><div class="panel-item-icon">🔗</div> Embed</div>
+    </div>
+
+    <!-- FORM FIELDS panel (slide-in) -->
+    <div class="add-panel" id="form-panel">
+        <div class="panel-header">
+            <span class="panel-title" style="color: #D97706;">Form Fields</span>
+            <button class="panel-close" onclick="closePanel('form-panel')">✕</button>
+        </div>
+        <div class="panel-item" data-comp="short_text"><div class="panel-item-icon" style="color:#D97706;">📝</div> Short Text</div>
+        <div class="panel-item" data-comp="long_text"><div class="panel-item-icon" style="color:#D97706;">📃</div> Long Text</div>
+        <div class="panel-item" data-comp="email_field"><div class="panel-item-icon" style="color:#D97706;">✉️</div> Email</div>
+        <div class="panel-item" data-comp="website"><div class="panel-item-icon" style="color:#D97706;">🌐</div> Website</div>
+        <div class="panel-item" data-comp="file_upload"><div class="panel-item-icon" style="color:#D97706;">📤</div> File Upload</div>
+        <div class="panel-item" data-comp="date"><div class="panel-item-icon" style="color:#D97706;">📅</div> Date</div>
+        <div class="panel-item" data-comp="numbers"><div class="panel-item-icon" style="color:#D97706;">🔢</div> Numbers</div>
+        <div class="panel-item" data-comp="dropdown"><div class="panel-item-icon" style="color:#D97706;">📋</div> Dropdown</div>
+        <div class="panel-item" data-comp="multi_choice"><div class="panel-item-icon" style="color:#D97706;">☑️</div> Multi Choice</div>
+    </div>
+
+    <!-- Template Modal -->
+    <div id="tpl-modal" class="hidden modal-overlay">
+        <div class="modal-box">
+            <div class="flex justify-between items-center mb-4">
+                <h3 style="font-size: 18px; font-weight: 700;">Templates</h3>
+                <button class="btn-icon" id="close-tpl-modal">✕</button>
+            </div>
+            <div id="tpl-list" style="margin-bottom: 16px;"></div>
+            <div class="flex gap-2">
+                <input type="text" id="tpl-name" class="cb-input" placeholder="Template name..." style="flex:1">
+                <button class="btn-primary btn-sm" id="save-tpl-exec" style="width:auto;padding:10px 16px;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="ops.js"></script>
+</body>
+</html>

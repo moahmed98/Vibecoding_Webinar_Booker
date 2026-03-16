@@ -1,14 +1,15 @@
-# 📅 Codebasics Event Booking Portal
+# 📅 Codebasics Webinar Management System
 
-An internal tool for scheduling and managing webinars at Codebasics. Checks availability against a centralized Notion calendar and triggers operations workflows via Process Street.
+An internal tool for scheduling webinars and managing operations checklists. Built on **Supabase** with a Process Street-inspired operations panel.
 
 ## Features
 
-- **Availability Check** — Validates against existing events in Notion to prevent scheduling conflicts
-- **Smart Date Validation** — Automatically blocks Thursdays after 6:00 PM
-- **Notion Integration** — Creates event entries with title, dates, webinar type, bootcamp name, and guest LinkedIn
-- **Process Street Webhook** — Triggers operations pipeline on booking confirmation
-- **Codebasics Branded UI** — Dark navy theme with official brand colors, fonts (Saira Condensed + Kanit), and glassmorphic card design
+- **Availability Check** — Prevents double-booking with overlap detection
+- **Smart Date Validation** — Blocks Thursdays after 6:00 PM
+- **Supabase Integration** — All data persisted to PostgreSQL via Supabase
+- **Operations Control Panel** — Dynamic checklists with nested sub-items
+- **Progress Tracking** — Real-time progress bar across all checklist items
+- **Codebasics Branded UI** — Dark navy theme with official brand colors and fonts
 
 ## Tech Stack
 
@@ -16,57 +17,43 @@ An internal tool for scheduling and managing webinars at Codebasics. Checks avai
 |-------|-----------|
 | Frontend | HTML, CSS, JavaScript |
 | Backend | Node.js, Express.js |
-| Database | Notion API |
-| Ops Workflow | Process Street (Webhook) |
+| Database | Supabase (PostgreSQL) |
+| Styling | Saira Condensed + Kanit fonts |
 
 ## Setup
 
-### 1. Clone the repo
+### 1. Clone & install
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
-```
-
-### 2. Install dependencies
-```bash
+git clone https://github.com/moahmed98/Vibecoding_Webinar_Booker.git
+cd Vibecoding_Webinar_Booker
 npm install
 ```
 
-### 3. Configure environment variables
-Create a `.env` file:
+### 2. Configure `.env`
 ```
-NOTION_API_KEY=your_notion_api_key
-NOTION_DATABASE_ID=your_notion_database_id
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 PORT=3000
 ```
 
-### 4. Run the server
+### 3. Create Supabase tables
+Run the SQL in `setup-supabase.js` (or see the SQL section in the script) via your Supabase Dashboard SQL Editor.
+
+### 4. Start
 ```bash
 node server.js
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Project Structure
-
-```
-├── public/
-│   ├── index.html       # Main UI (Codebasics branded)
-│   ├── script.js        # Frontend logic & form handling
-│   └── logo.png         # Logo asset
-├── server.js            # Express server, Notion & Process Street APIs
-├── .env                 # Environment variables (not committed)
-├── package.json         # Dependencies
-└── README.md
-```
+Open [http://localhost:3000](http://localhost:3000)
 
 ## How It Works
 
-1. User fills in webinar title, date/time (2×2 grid), and clicks **Check Availability**
-2. Backend queries Notion database for scheduling conflicts
-3. If available, extended form appears (webinar type, bootcamp name, LinkedIn)
-4. On **Confirm Booking**, event is created in Notion
-5. User can trigger **Process Street** operations workflow via webhook
+1. **Book** — Fill in webinar details, check availability, confirm
+2. **Operate** — After booking, the Operations Control Panel appears
+3. **Create Checklists** — Dynamic, named checklists (e.g., "Pre-Event", "Marketing")
+4. **Add Tasks** — Add items and nest sub-items within items
+5. **Track Progress** — Progress bar fills as tasks are completed
+6. **Persist** — All checkbox states saved to Supabase in real-time
 
 ---
 

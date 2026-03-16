@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Portal — Codebasics</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <!-- Top Nav -->
+    <nav class="top-nav">
+        <img src="https://files.codebasics.io/v3/images/sticky-logo.svg" alt="Codebasics" class="top-nav-logo">
+        <div class="top-nav-user">
+            <span id="nav-name" class="top-nav-name"></span>
+            <span id="nav-role" class="top-nav-role"></span>
+            <button class="logout-btn" id="logout-btn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" id="tab-new" onclick="switchTab('new')">New Booking</button>
+            <button class="tab" id="tab-events" onclick="switchTab('events')">My Events</button>
+        </div>
+
+        <!-- NEW BOOKING TAB -->
+        <div id="panel-new">
+            <div class="card card-glow" style="max-width: 600px; margin: 0 auto; padding: 40px;">
+                <div class="text-center mb-6">
+                    <h2 style="font-size: 24px; font-weight: 800;">
+                        Book a <span style="color: var(--cb-blue);">Webinar</span>
+                    </h2>
+                    <p style="margin-top: 6px; font-size: 14px; color: var(--cb-text-muted);">
+                        Check availability and schedule your event.
+                    </p>
+                </div>
+
+                <form id="bookingForm" style="display: flex; flex-direction: column; gap: 18px;">
+                    <!-- Title -->
+                    <div>
+                        <label for="title" class="cb-label">Webinar Title</label>
+                        <input id="title" type="text" required class="cb-input" placeholder="Enter webinar title...">
+                    </div>
+
+                    <!-- 4-box date/time -->
+                    <div class="datetime-grid">
+                        <div>
+                            <label for="start-date" class="cb-label">Start Date</label>
+                            <input id="start-date" type="date" required class="cb-input">
+                        </div>
+                        <div>
+                            <label for="end-date" class="cb-label">End Date</label>
+                            <input id="end-date" type="date" required class="cb-input">
+                        </div>
+                        <div>
+                            <label for="start-time" class="cb-label">Start Time</label>
+                            <input id="start-time" type="time" required class="cb-input">
+                        </div>
+                        <div>
+                            <label for="end-time" class="cb-label">End Time</label>
+                            <input id="end-time" type="time" required class="cb-input">
+                        </div>
+                    </div>
+
+                    <!-- Availability Feedback -->
+                    <div id="availability-feedback" class="hidden"
+                        style="font-size: 14px; font-weight: 500; padding: 8px 12px; border-radius: 6px;"></div>
+
+                    <button type="button" id="check-availability-btn" class="btn-primary">Check Availability</button>
+
+                    <!-- Extended Form -->
+                    <div id="extended-form" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
+
+                        <!-- Paid/Free -->
+                        <div>
+                            <label class="cb-label">Paid or Free?</label>
+                            <select id="paid-free" class="cb-select" required>
+                                <option value="Free">Free</option>
+                                <option value="Paid">Paid</option>
+                            </select>
+                        </div>
+
+                        <!-- Event Type (Radio) -->
+                        <div>
+                            <label class="cb-label">Event Type</label>
+                            <div class="radio-group" id="event-type-group">
+                                <label class="radio-option" id="radio-course">
+                                    <input type="radio" name="eventType" value="Course Webinar">
+                                    Course Webinar
+                                </label>
+                                <label class="radio-option" id="radio-bootcamp">
+                                    <input type="radio" name="eventType" value="Bootcamp Webinar">
+                                    Bootcamp Webinar
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Bootcamp multi-select (conditional) -->
+                        <div id="bootcamp-field" class="hidden">
+                            <label class="cb-label">Select Bootcamps <span
+                                    style="color: var(--cb-danger);">*</span></label>
+                            <div class="multi-select" id="bootcamp-options">
+                                <label class="multi-option"><input type="checkbox" value="Data Analytics"> Data
+                                    Analytics</label>
+                                <label class="multi-option"><input type="checkbox" value="Data Engineering"> Data
+                                    Engineering</label>
+                                <label class="multi-option"><input type="checkbox" value="Data Science"> Data
+                                    Science</label>
+                                <label class="multi-option"><input type="checkbox" value="Gen AI"> Gen AI</label>
+                            </div>
+                        </div>
+
+                        <!-- Course multi-select (conditional) -->
+                        <div id="course-field" class="hidden">
+                            <label class="cb-label">Select Courses <span style="color: var(--cb-danger);">*</span></label>
+                            <div class="multi-select" id="course-options">
+                                <label class="multi-option"><input type="checkbox" value="Power BI"> Power BI</label>
+                                <label class="multi-option"><input type="checkbox" value="SQL"> SQL</label>
+                                <label class="multi-option"><input type="checkbox" value="Python"> Python</label>
+                                <label class="multi-option"><input type="checkbox" value="Excel"> Excel</label>
+                                <label class="multi-option"><input type="checkbox" value="Tableau"> Tableau</label>
+                            </div>
+                        </div>
+
+                        <!-- LinkedIn -->
+                        <div>
+                            <label for="linkedin" class="cb-label">Guest's LinkedIn Profile</label>
+                            <input id="linkedin" type="url" placeholder="https://linkedin.com/in/..." required
+                                class="cb-input">
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="btn-success">Confirm Booking</button>
+                    </div>
+                </form>
+                <div id="final-message" style="text-align: center; font-weight: 500; margin-top: 16px;"></div>
+
+                <!-- Post-booking: Assign to Ops -->
+                <div id="post-booking" class="hidden" style="margin-top: 20px;">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 48px; margin-bottom: 8px;">✅</div>
+                        <h3 style="font-size: 20px; font-weight: 800;">
+                            Event <span style="color: var(--cb-blue);">Booked!</span>
+                        </h3>
+                        <p style="font-size: 13px; color: var(--cb-text-muted); margin-top: 4px;" id="booked-summary"></p>
+                    </div>
+                    <button id="assign-ops-btn" class="btn-purple" style="margin-top: 12px;">
+                        Assign to Operations Team →
+                    </button>
+                    <div id="assigned-msg" class="hidden"
+                        style="text-align: center; margin-top: 12px; padding: 12px; background: #DBEAFE; border-radius: 8px; color: var(--cb-blue); font-size: 14px;">
+                        🚀 Assigned! Operations team will see this in their dashboard.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MY EVENTS TAB -->
+        <div id="panel-events" class="hidden">
+            <div id="events-list" style="max-width: 700px; margin: 0 auto;">
+                <p style="color: var(--cb-text-muted); text-align: center; padding: 40px;">Loading events...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="booking.js"></script>
+</body>
+
+</html>
